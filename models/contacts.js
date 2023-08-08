@@ -43,9 +43,6 @@ const removeContact = async (contactId) => {
 const addContact = async (body) => {
   const data = await read()
   const { name, email, phone } = body
-  if (!name || !email || !phone) {
-    return null
-  }
   const newContact = {
     id: crypto.randomUUID(),
     name: name,
@@ -65,9 +62,6 @@ const updateContact = async (contactId, body) => {
     return undefined
   }
   const { name, email, phone } = body
-  if (!name || !email || !phone) {
-    return null
-  }
   const newContact = {
     id: contactId,
     name: name,
