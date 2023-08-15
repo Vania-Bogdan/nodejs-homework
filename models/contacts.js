@@ -37,7 +37,6 @@ const removeContact = async (contactId) => {
 
   const newContacts = [...data.slice(0, index), ...data.slice(index + 1)]
   await write(newContacts)
-  return
 }
 
 const addContact = async (body) => {

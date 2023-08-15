@@ -25,48 +25,80 @@ router.get('/', async (req, res, next) => {
 })
 
 router.get('/:contactId', async (req, res, next) => {
-  const { contactId } = req.params
-  const contact = await Contacts.getContactById(contactId)
+  try {
+    const { contactId } = req.params
+    const contact = await Contacts.getContactById(contactId)
 
-  if (!contact) {
+    if (!contact) {
+      res.status(404).json({ message: 'Not found' })
+      return
+    }
+
+    res.status(200).send(contact)
+  } catch (err) {
     res.status(404).json({ message: 'Not found' })
   }
-
-  res.status(200).send(contact)
 })
 
 
 router.post('/', jsonParser, async (req, res, next) => {
-  const response = contactSchema.validate(req.body)
-  if (typeof response.error !== 'undefined') {
-    res.status(400).json({ message: "missing required name field" })
-    return
+  try {
+    const response = contactSchema.validate(req.body)
+    if (typeof response.error !== 'undefined') {
+      if (response.error.message.includes('not allowed to be empty') || response.error.message.includes('is required')) {
+        const invalidValue = response.error.message.split(' ')[0].replaceAll('"', '')
+        return res.status(400).json({ message: `missing required ${invalidValue} field` })
+      } else {
+        return res.status(400).json({ message: `${response.error.message}` })
+      }
+    } else {
+      const newContact = await Contacts.addContact(req.body)
+      return res.status(201).send(newContact)
+    }
+  } catch (err) {
+    res.status(500).json({ message: 'Internal Server Error' })
   }
-  const newContact = await Contacts.addContact(req.body)
-  res.status(201).send(newContact)
 })
 
 router.delete('/:contactId', async (req, res, next) => {
-  const { contactId } = req.params
-  const result = await Contacts.removeContact(contactId)
-  if (result === null) {
+  try {
+    const { contactId } = req.params
+    const result = await Contacts.removeContact(contactId)
+    if (result === null) {
+      res.status(404).json({ message: 'Not found' })
+      return
+    }
+    res.status(200).json({ message: "contact deleted" });
+  } catch (err) {
     res.status(404).json({ message: 'Not found' })
   }
-  res.status(200).json({ message: "contact deleted" });
+
+
 })
 
 router.put('/:contactId', async (req, res, next) => {
-  const response = contactSchema.validate(req.body)
-  if (typeof response.error !== 'undefined') {
-    res.status(400).json({ message: "missing fields" })
-    return
+  try {
+    const response = contactSchema.validate(req.body)
+    if (typeof response.error !== 'undefined') { // check on problem
+      const missedValue = response.error.message.split(' ')[0].replaceAll('"', '') // clear missed value
+      if (Object.keys(req.body).length === 0) { // check on empty body
+        return res.status(400).json({ message: 'missing fields' })
+      } else if (response.error.message.includes('not allowed to be empty') || response.error.message.includes('is required')) { // check on 1 missing field
+        return res.status(400).json({ message: `missing required ${missedValue} field` })
+      } else { // check on another problem
+        return res.status(400).json({ message: `${response.error.message}` })
+      }
+    } else {
+      const { contactId } = req.params
+      const updatedContact = await Contacts.updateContact(contactId, req.body)
+      if (updatedContact === undefined) { // check on valid ID
+        return res.status(404).json({ message: 'Not found' })
+      }
+      return res.status(200).send(updatedContact)
+    }
+  } catch (err) {
+    res.status(500).json({ message: 'Internal Server Error' })
   }
-  const { contactId } = req.params
-  const updatedContact = await Contacts.updateContact(contactId, req.body)
-  if (updatedContact === undefined) {
-    res.status(404).json({ message: 'Not found' })
-  }
-  res.status(200).send(updatedContact)
 })
 
 module.exports = router
