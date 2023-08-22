@@ -2,7 +2,7 @@ const express = require('express')
 
 const router = express.Router()
 
-const ContactController = require('../../controllers/index')
+const ContactController = require('../../controllers/сontact/index')
 
 const jsonParser = express.json();
 

@@ -1,8 +1,12 @@
-const Contact = require('../models/contact');
+const Contact = require('../../models/contact');
 
 async function getAll(req, res, next) {
+    const userId = req.user.id
+
     try {
-        const data = await Contact.find().exec()
+        const data = await Contact.find(
+            { owner: userId }
+        ).exec()
         return res.send(data)
     } catch (err) {
         console.error(err);

@@ -1,4 +1,4 @@
-const Contact = require('../models/contact');
+const Contact = require('../../models/contact');
 
 const Joi = require('joi');
 
@@ -20,11 +20,14 @@ async function create(req, res, next) {
                 return res.status(400).json({ message: `${response.error.message}` })
             }
         } else {
+            const userId = req.user.id
+
             const contact = {
                 name: req.body.name,
                 email: req.body.email,
                 phone: req.body.phone,
-                favorite: req.body.favorite
+                favorite: req.body.favorite,
+                owner: userId
             }
             const createdContact = await Contact.create(contact)
             return res.status(201).send(createdContact)
