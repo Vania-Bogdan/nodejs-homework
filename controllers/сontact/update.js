@@ -1,4 +1,4 @@
-const Contact = require('../models/contact');
+const Contact = require('../../models/contact');
 
 const Joi = require('joi');
 
@@ -23,20 +23,30 @@ async function update(req, res, next) {
             }
         } else {
             const id = req.params.contactId
+
+            const userId = req.user.id
+
+            const result = await Contact.findById(id).exec()
+            if (result === null) {
+                return res.status(404).send({ message: "Not found" });
+            }
+
+            if (result.owner.toString() !== userId) {
+                return res.status(404).send({ message: "Not found" });
+            }
+
             const contact = {
                 name: req.body.name,
                 email: req.body.email,
                 phone: req.body.phone,
-                favorite: req.body.favorite
+                favorite: req.body.favorite,
+                owner: userId
             }
             const updatedContact = await Contact.findByIdAndUpdate(id, contact, { new: true }).exec()
-            console.log(updatedContact)
-            if (updatedContact === null) { // check on valid ID
-                return res.status(404).json({ message: 'Not found' })
-            }
             return res.status(200).send(updatedContact)
         }
     } catch (err) {
+        console.error(err)
         res.status(404).json({ message: 'Not found' })
     }
 }

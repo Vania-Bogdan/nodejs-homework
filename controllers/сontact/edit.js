@@ -1,4 +1,4 @@
-const Contact = require('../models/contact');
+const Contact = require('../../models/contact');
 
 const Joi = require('joi');
 
@@ -23,7 +23,15 @@ async function edit(req, res, next) {
             }
         } else {
             const id = req.params.contactId
+
+            const userId = req.user.id
+
             const result = await Contact.findById(id).exec()
+
+            if (result.owner.toString() !== userId) {
+                return res.status(404).send({ message: "Not found" });
+            }
+
             const contact = {
                 name: result.name,
                 email: result.email,
@@ -31,7 +39,6 @@ async function edit(req, res, next) {
                 favorite: req.body.favorite
             }
             const editedContact = await Contact.findByIdAndUpdate(id, contact, { new: true }).exec()
-            console.log(editedContact)
             if (editedContact === null) { // check on valid ID
                 return res.status(404).json({ message: 'Not found' })
             }
