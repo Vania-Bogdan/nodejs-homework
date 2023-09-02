@@ -10,36 +10,28 @@ async function avatars(req, res, next) {
     try {
         await fs.rename(req.file.path, path.join(__dirname, '../../', 'public/avatars', req.file.filename));
 
-        const avatar = req.file.filename
-        console.log(avatar)
+        const avatarsDir = path.join(__dirname, "..", "..", "public", "avatars", req.file.filename);
 
-        const authHeader = req.headers.authorization;
-        const [bearer, token] = authHeader.split(" ", 2)
-        const oldUser = await User.findOne({ token }).exec()
+
+        const avatar = req.file.filename
+
         const userChanges = {
             avatarURL: avatar
         }
 
-        const newUser = await User.findByIdAndUpdate(oldUser.id, userChanges, { new: true }).exec()
-
-        const updatedUser = await User.findOne({ token }).exec()
-
-        const newAvatar = await Jimp.read(`../../public/avatars/${updatedUser.avatarURL}`)
-            .then((avatar) => {
-                return avatar
-                    .resize(250, 250) // resize
-            })
-            .catch((err) => {
-                console.error(err);
-            });
-        const optimizedAvatar = {
-            avatarURL: newAvatar
+        try {
+            const image = await Jimp.read(avatarsDir);
+            image.resize(250, 250);
+            image.quality(75);
+            image.writeAsync(avatarsDir);
+        } catch (e) {
+            next(e);
         }
 
-        const optimizedUser = await User.findByIdAndUpdate(updatedUser.id, optimizedAvatar, { new: true }).exec()
+        await User.findByIdAndUpdate(req.user.id, userChanges, { new: true }).exec()
 
         return res.status(200).json({
-            "avatarURL": optimizedUser.avatarURL,
+            "avatarURL": req.file.filename
         })
     } catch (e) {
         next(e);
