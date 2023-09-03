@@ -8,16 +8,13 @@ const User = require('../../models/user')
 
 async function avatars(req, res, next) {
     try {
-        await fs.rename(req.file.path, path.join(__dirname, '../../', 'public/avatars', req.file.filename));
+        const name = req.file.filename
 
-        const avatarsDir = path.join(__dirname, "..", "..", "public", "avatars", req.file.filename);
+        await fs.rename(req.file.path, path.join(__dirname, '../../', 'public/avatars', name));
 
+        const avatarsDir = path.join(__dirname, "..", "..", "public", "avatars", name);
 
-        const avatar = req.file.filename
-
-        const userChanges = {
-            avatarURL: avatar
-        }
+        const avatarURL = path.join('avatars', name)
 
         try {
             const image = await Jimp.read(avatarsDir);
@@ -28,10 +25,10 @@ async function avatars(req, res, next) {
             next(e);
         }
 
-        await User.findByIdAndUpdate(req.user.id, userChanges, { new: true }).exec()
+        await User.findByIdAndUpdate(req.user.id, { avatarURL }, { new: true }).exec()
 
         return res.status(200).json({
-            "avatarURL": req.file.filename
+            avatarURL
         })
     } catch (e) {
         next(e);
