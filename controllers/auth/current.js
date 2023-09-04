@@ -12,6 +12,8 @@ async function current(req, res, next) {
 
         const [bearer, token] = authHeader.split(" ", 2)
 
+        console.log(bearer)
+
         const user = await User.findOne({ token }).exec()
 
         console.log(user)
@@ -22,6 +24,3 @@ async function current(req, res, next) {
 }
 
 module.exports = current
-
-
-//findOne()

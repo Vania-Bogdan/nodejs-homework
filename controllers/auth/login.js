@@ -39,7 +39,7 @@ async function login(req, res, next) {
         }
 
         const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET,
-            { expiresIn: 3600 })
+            { expiresIn: 86400 })
 
         await User.findByIdAndUpdate(user._id, { token })
 

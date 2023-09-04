@@ -2,6 +2,8 @@ const User = require('../../models/user');
 
 const bcrypt = require('bcrypt')
 
+const gravatar = require('gravatar');
+
 const Joi = require('joi');
 
 const userSchema = Joi.object({
@@ -28,7 +30,9 @@ async function register(req, res, next) {
 
         const passwordHash = await bcrypt.hash(password, 10)
 
-        const newUser = await User.create({ email, password: passwordHash })
+        const avatar = gravatar.url(req.body.email)
+
+        const newUser = await User.create({ email, password: passwordHash, avatarURL: avatar })
         return res.status(201).json({
             user: {
                 email: newUser.email,
