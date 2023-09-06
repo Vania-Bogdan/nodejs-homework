@@ -4,6 +4,10 @@ const bcrypt = require('bcrypt')
 
 const gravatar = require('gravatar');
 
+const sendEmail = require('./nodemailer')
+
+const crypto = require('node:crypto')
+
 const Joi = require('joi');
 
 const userSchema = Joi.object({
@@ -32,7 +36,19 @@ async function register(req, res, next) {
 
         const avatar = gravatar.url(req.body.email)
 
-        const newUser = await User.create({ email, password: passwordHash, avatarURL: avatar })
+        const token = crypto.randomUUID()
+
+        const newUser = await User.create({ email, password: passwordHash, avatarURL: avatar, verificationToken: token })
+
+        sendEmail({
+            to: email,
+            subject: 'Welcome on board',
+            html: `
+            <p>To confirm your email please click on the link below</p>
+            <a href="http://localhost:3000/users/verify/${token}">Click me</a>
+            `
+        })
+
         return res.status(201).json({
             user: {
                 email: newUser.email,
