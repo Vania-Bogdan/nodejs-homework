@@ -34,5 +34,7 @@ router.post('/login', jsonParser, AuthControllers.login)
 router.post('/logout', auth, AuthControllers.logout)
 router.get('/current', auth, AuthControllers.current)
 router.patch('/avatars', auth, upload.single('avatarURL'), AuthControllers.avatars)
+router.get('/verify/:verificationToken', AuthControllers.verify)
+router.post('/verify', AuthControllers.repeatverify)
 
 module.exports = router
